@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  openclaw:
+    build: .
+    container_name: openclaw
+    volumes:
+      # Mount local directories to keep data off your Mac's home directory
+      - ./data/config:/openclaw-data/config
+      - ./data/workspace:/openclaw-data/workspace
+    ports:
+      - "18789:18789"  # Web UI
+      - "18790:18790"  # Bridge
+    environment:
+      - OPENCLAW_HOME=/openclaw-data/config
+      - OPENCLAW_WORKSPACE=/openclaw-data/workspace
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
