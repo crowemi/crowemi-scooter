@@ -1,33 +1,19 @@
 services:
   openclaw:
-    # build: ./openclaw
-    image: openclaw:local
-    depends_on:
-      - ollama
+    build: .
     volumes:
       # Mount local directories to keep data off your Mac's home directory
-      - ./data/config:/openclaw-data/config
-      - ./data/workspace:/openclaw-data/workspace
+      - ./data/config:/openclaw/data/config
+      - ./data/workspace:/openclaw/data/workspace
+      - ./data/code:/openclaw/data/code
       # Mount Docker socket so openclaw can spawn containers
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "18789:18789"  # Web UI
       - "18790:18790"  # Bridge
     environment:
-      - OPENCLAW_HOME=/openclaw-data/config
-      - OPENCLAW_WORKSPACE=/openclaw-data/workspace
+      - OPENCLAW_HOME=/openclaw/data/config
+      - OPENCLAW_WORKSPACE=/openclaw/data/workspace
     stdin_open: true
     tty: true
     restart: unless-stopped
-
-  ollama:
-    build: ./ollama
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ./data/ollama:/root/.ollama
-    restart: unless-stopped
-
-volumes:
-  ollama:
