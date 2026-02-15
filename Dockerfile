@@ -17,8 +17,16 @@ RUN apt-get update && apt-get install -y \
 # brew install
 RUN useradd -m -s /bin/bash linuxbrew \
     && NONINTERACTIVE=1 su - linuxbrew -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-ENV PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH
 RUN su - linuxbrew -c "/home/linuxbrew/.linuxbrew/bin/brew update"
+RUN mv /home/linuxbrew/.linuxbrew/bin/brew /home/linuxbrew/.linuxbrew/bin/brew-real \
+    && printf '%s\n' '#!/bin/sh' 'if [ "$(id -u)" -eq 0 ]; then' '  exec /usr/sbin/runuser -u linuxbrew -- /home/linuxbrew/.linuxbrew/bin/brew-real "$@"' 'fi' 'exec /home/linuxbrew/.linuxbrew/bin/brew-real "$@"' > /home/linuxbrew/.linuxbrew/bin/brew \
+    && chmod +x /home/linuxbrew/.linuxbrew/bin/brew
+RUN printf '%s\n' '#!/bin/sh' 'exec /usr/sbin/runuser -u linuxbrew -- /home/linuxbrew/.linuxbrew/bin/brew "$@"' > /usr/local/bin/brew \
+    && chmod +x /usr/local/bin/brew \
+    && brew update \
+    && brew install uv gh himalaya
+
+ENV PATH=/usr/local/bin:$PATH:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin
 
 # Install Node.js 22.x
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
