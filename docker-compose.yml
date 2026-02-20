@@ -1,5 +1,5 @@
 services:
-  openclaw:
+  scooter:
     build: .
     volumes:
       # Mount local directories to keep data off your Mac's home directory
