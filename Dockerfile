@@ -48,3 +48,4 @@ COPY start.py /start.py
 RUN chmod +x /start.py
 
 CMD ["python3", "/start.py"]
+# CMD ["sh"]

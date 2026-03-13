@@ -32,21 +32,8 @@ def configure_git_identity(config_path: Path) -> None:
     except (OSError, json.JSONDecodeError):
         return
 
-    user_config = config.get("user", {}) if isinstance(config, dict) else {}
-    github_config = config.get("github", {}) if isinstance(config, dict) else {}
-
-    name = (
-        config.get("name")
-        or config.get("user.name")
-        or user_config.get("name")
-        or github_config.get("name")
-    )
-    email = (
-        config.get("email")
-        or config.get("user.email")
-        or user_config.get("email")
-        or github_config.get("email")
-    )
+    name = config.get("name")
+    email = config.get("email")
 
     if isinstance(name, str) and name.strip():
         run(["git", "config", "--global", "user.name", name.strip()])
@@ -77,7 +64,7 @@ def configure_git_identity(config_path: Path) -> None:
         print("GitHub PAT configured (gh auth + git credential store).")
 
 
-def configure_notion(config_path: Path) -> None:
+def configure_notion_api_key(config_path: Path) -> None:
     if not config_path.exists():
         return
 
@@ -87,11 +74,9 @@ def configure_notion(config_path: Path) -> None:
     except (OSError, json.JSONDecodeError):
         return
 
-    api_key = config.get("apiKey") if isinstance(config, dict) else None
-    if isinstance(api_key, str) and api_key.strip():
-        os.environ["NOTION_API_KEY"] = api_key.strip()
-        print("Notion API Key configured in environment variable NOTION_API_KEY.")
-
+    key = config.get("key") if isinstance(config, dict) else None
+    if isinstance(key, str) and key.strip():
+        os.environ["NOTION_API_KEY"] = key.strip()
 
 
 def fix_config_permissions(config_dir: Path) -> None:
@@ -113,26 +98,12 @@ def fix_config_permissions(config_dir: Path) -> None:
                     filepath.chmod(filepath.stat().st_mode | 0o644)
 
 
-def configure_himalaya(config_path: Path) -> None:
-    """Copy himalaya config into ~/.config/himalaya/ so the CLI finds it."""
-    if not config_path.exists():
-        return
-
-    dest_dir = Path.home() / ".config" / "himalaya"
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    dest = dest_dir / "config.toml"
-    shutil.copy2(config_path, dest)
-    dest.chmod(0o600)
-    print(f"Himalaya config installed to {dest}")
-
-
 def main() -> int:
     os.umask(0o022)
     fix_config_permissions(Path("/openclaw/data/config"))
     start_ssh_agent()
     configure_git_identity(Path("/openclaw/data/config/.github/config.json"))
-    configure_notion(Path("/openclaw/data/config/.notion/config.json"))
-    configure_himalaya(Path("/openclaw/data/config/.himalaya/config.toml"))
+    configure_notion_api_key(Path("/openclaw/data/config/.notion/config.json"))
 
     run(["ssh-add", "/openclaw/data/config/.ssh/github"])
     run(["ssh-add", "-l"])
